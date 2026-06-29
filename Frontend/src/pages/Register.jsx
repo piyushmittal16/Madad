@@ -3,23 +3,27 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Lock, MapPin, Briefcase, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import BlobButton from '../components/BlobButton'; // 🔥 Import the dynamic reusable button layer
+
 const baseURL = import.meta.env.VITE_API_URL;
+
 export default function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     city: '',
-    role: 'customer' // Default role mapping
+    role: 'customer' 
   });
   
-  // 🔥 FIX 1: Password tracking visibility toggler state
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Strict guard lockout path to block duplicate clicks execution
+
     setLoading(true);
     try {
       const res = await axios.post(`${baseURL}/api/auth/register`, {
@@ -61,10 +65,11 @@ export default function Register() {
                 <input 
                   type="text" 
                   required 
+                  disabled={loading}
                   value={formData.name} 
                   onChange={e => setFormData({...formData, name: e.target.value})}
                   placeholder="e.g. Piyush Mittal" 
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium" 
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium disabled:opacity-60" 
                 />
               </div>
             </div>
@@ -76,26 +81,27 @@ export default function Register() {
                 <input 
                   type="email" 
                   required 
+                  disabled={loading}
                   value={formData.email} 
                   onChange={e => setFormData({...formData, email: e.target.value})}
                   placeholder="name@example.com" 
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium" 
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium disabled:opacity-60" 
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Password Access Key *</label>
-              {/* 🔥 FIX 1: Injected responsive eye tracker icon button onto input alignment wrapper */}
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><Lock size={18} /></span>
                 <input 
                   type={showPassword ? "text" : "password"} 
                   required 
+                  disabled={loading}
                   value={formData.password} 
                   onChange={e => setFormData({...formData, password: e.target.value})}
                   placeholder="••••••••" 
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium" 
+                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium disabled:opacity-60" 
                 />
                 <button
                   type="button"
@@ -114,10 +120,11 @@ export default function Register() {
                 <input 
                   type="text" 
                   required 
+                  disabled={loading}
                   value={formData.city} 
                   onChange={e => setFormData({...formData, city: e.target.value})}
                   placeholder="e.g. gwalior" 
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium lowercase" 
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium lowercase disabled:opacity-60" 
                 />
               </div>
             </div>
@@ -128,23 +135,20 @@ export default function Register() {
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><Briefcase size={18} /></span>
                 <select 
                   value={formData.role} 
+                  disabled={loading}
                   onChange={e => setFormData({...formData, role: e.target.value})}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-black cursor-pointer"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-black cursor-pointer disabled:opacity-60"
                 >
-                  {/* 🔥 FIX 2: Admin option completely stripped off from here to guarantee administrative constraints */}
                   <option value="customer">👥 Customer (Book Home Services)</option>
                   <option value="provider">💼 Field Provider (Offer Service Expertise)</option>
                 </select>
               </div>
             </div>
 
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-[#0f172a] hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-[0.99] text-sm tracking-wide mt-4 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-            >
-              {loading ? 'Processing System Keys...' : 'Register Profile Node'} <ArrowRight size={16}/>
-            </button>
+            {/* 🔥 INTEGRATED: Custom Blob Button component with internal state processing loaders */}
+            <BlobButton type="submit" isLoading={loading} className="mt-4 btn-wave-effect">
+              <span>Register Profile Node</span>
+            </BlobButton>
           </form>
           
           <div className="relative my-6">
@@ -152,7 +156,7 @@ export default function Register() {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-semibold tracking-wider">Already Registered?</span></div>
           </div>
 
-          <Link to="/login" className="block w-full text-center border-2 border-slate-100 hover:border-[#ff8a00] text-slate-700 font-bold py-2.5 rounded-xl transition-all text-sm">
+          <Link to="/login" className="block w-full text-center border-2 border-slate-100 hover:border-[#ff8a00] text-slate-700 font-bold py-2.5 rounded-xl transition-all text-sm active:scale-95 duration-100">
             Sign In to Marketplace
           </Link>
         </div>

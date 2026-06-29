@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, ArrowLeft, KeyRound, AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
-const baseURL = import.meta.env.VITE_API_URL;
+import BlobButton from '../components/BlobButton'; // 🔥 Import button wrapper
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,6 +16,9 @@ export default function Login() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [authFeedback, setAuthFeedback] = useState({ message: '', type: '' });
 
+  // 🔥 Loading state parameter to stop multi-clicking duplicate submissions
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const triggerFeedbackMessage = (message, type = 'error') => {
@@ -25,8 +28,11 @@ export default function Login() {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading) return; // Guard clause
+    
+    setIsLoading(true); // Trigger loader
     try {
-      const res = await axios.post(`${baseURL}/api/auth/login`, { 
+      const res = await axios.post('http://localhost:5000/api/auth/login', { 
         email: email.trim(), 
         password 
       });
@@ -34,8 +40,6 @@ export default function Login() {
       if (res.data.success) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
-        
-        // 🔥 Trigger temporary variable key to notify Navbar to pull login tokens backlogs instantly
         localStorage.setItem('JUST_LOGGED_IN_SESSION', 'true');
         
         const userRole = res.data.user.role;
@@ -50,13 +54,15 @@ export default function Login() {
     } catch (err) {
       const serverMessage = err.response?.data?.message || 'Invalid operational credentials.';
       triggerFeedbackMessage(serverMessage, 'error');
+    } finally {
+      setIsLoading(false); // Shutdown loader tracking states
     }
   };
 
   const handleForgetPasswordSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${baseURL}/api/auth/forget-password`, {
+      const res = await axios.post('http://localhost:5000/api/auth/forget-password', {
         email: forgetEmail.trim(),
         newPassword
       });
@@ -98,27 +104,28 @@ export default function Login() {
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Email Address</label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><Mail size={18} /></span>
-                    <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com" className="w-full pl-10 pr-4 py-3 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium" />
+                    <input type="email" required disabled={isLoading} value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com" className="w-full pl-10 pr-4 py-3 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium" />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">Password Access Key</label>
-                    <button type="button" onClick={() => { setForgetEmail(email); setIsForgetMode(true); }} className="text-xs font-bold text-[#ff8a00] hover:underline focus:outline-none">Forgot Password?</button>
+                    <button type="button" disabled={isLoading} onClick={() => { setForgetEmail(email); setIsForgetMode(true); }} className="text-xs font-bold text-[#ff8a00] hover:underline focus:outline-none">Forgot Password?</button>
                   </div>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><Lock size={18} /></span>
-                    <input type={showPassword ? "text" : "password"} required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-10 pr-10 py-3 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium" />
+                    <input type={showPassword ? "text" : "password"} required disabled={isLoading} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-10 pr-10 py-3 bg-slate-50 text-[#0f172a] rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff8a00] focus:bg-white transition-all text-sm font-medium" />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none">
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
 
-                <button type="submit" className="w-full bg-[#0f172a] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg active:scale-95 duration-100 text-sm tracking-wide mt-2">
+                {/* 🔥 INTEGRATED: Custom Liquid Blob Button with Auto Loader & Animation */}
+                <BlobButton type="submit" isLoading={isLoading} className="mt-2 btn-wave-effect">
                   Sign In to Marketplace
-                </button>
+                </BlobButton>
               </form>
               
               <div className="relative my-6">
