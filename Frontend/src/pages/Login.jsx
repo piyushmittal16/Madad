@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, ArrowLeft, KeyRound, AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
+const baseURL = import.meta.env.VITE_API_URL;
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ export default function Login() {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { 
+      const res = await axios.post(`${baseURL}/api/auth/login`, { 
         email: email.trim(), 
         password 
       });
@@ -55,7 +56,7 @@ export default function Login() {
   const handleForgetPasswordSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/forget-password', {
+      const res = await axios.post(`${baseURL}/api/auth/forget-password`, {
         email: forgetEmail.trim(),
         newPassword
       });

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Lock, MapPin, Briefcase, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import Navbar from '../components/Navbar';
-
+const baseURL = import.meta.env.VITE_API_URL;
 export default function Register() {
   const [formData, setFormData] = useState({
     name: '',
@@ -22,7 +22,7 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', {
+      const res = await axios.post(`${baseURL}/api/auth/register`, {
         name: formData.name,
         email: formData.email,
         password: formData.password,

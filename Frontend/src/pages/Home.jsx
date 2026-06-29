@@ -3,6 +3,7 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import { Search, MapPin, AlertCircle, Sparkles, Star, Calendar, Clock, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
+const baseURL = import.meta.env.VITE_API_URL;
 
 // 🚀 PERFORMANCE CONCEPT: React.memo for Provider Grid Cards
 const ProviderCard = React.memo(({ provider, onSelect }) => {
@@ -76,7 +77,7 @@ export default function Home() {
 
   const fetchInitialProviders = useCallback(async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/users/providers');
+      const res = await axios.get(`${baseURL}/api/users/providers`);
       setAllProviders(res.data || []);
     } catch (err) {
       console.error('Error fetching catalog data matrix channels.', err);
@@ -123,7 +124,7 @@ export default function Home() {
     if (!user) return showToast("Authentication Required!", "error");
 
     try {
-      await axios.post('http://localhost:5000/api/bookings/create', {
+      await axios.post(`${baseURL}/api/bookings/create`, {
         customer: user.id,
         provider: selectedProvider._id,
         serviceType: selectedProvider.serviceType,

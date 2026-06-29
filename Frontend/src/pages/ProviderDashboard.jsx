@@ -3,7 +3,7 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import { Sliders, Activity, User, Briefcase, Send, XOctagon, Sparkles, CheckCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
-
+const baseURL = import.meta.env.VITE_API_URL;
 export default function ProviderDashboard() {
   const [bookings, setBookings] = useState([]);
   const [profileNode, setProfileNode] = useState(null);
@@ -16,10 +16,10 @@ export default function ProviderDashboard() {
     if (!providerUser) return;
     try {
       // API call to pull actual state parameters
-      const res = await axios.get(`http://localhost:5000/api/bookings?userId=${providerUser.id}&role=provider`);
+      const res = await axios.get(`${baseURL}/api/bookings?userId=${providerUser.id}&role=provider`);
       setBookings(res.data || []);
 
-      const allUsersRes = await axios.get(`http://localhost:5000/api/users/admin/all`);
+      const allUsersRes = await axios.get(`${baseURL}/api/users/admin/all`);
       const mine = allUsersRes.data.users.find(u => u._id === providerUser.id);
       if (mine) {
         setProfileNode(mine);
@@ -62,7 +62,7 @@ export default function ProviderDashboard() {
         isRejected: false
       };
 
-      await axios.put(`http://localhost:5000/api/users/profile/${providerUser.id}`, payload);
+      await axios.put(`${baseURL}/api/users/profile/${providerUser.id}`, payload);
       setFormFeedback('Profile settings updated successfully live in the marketplace!');
       fetchProviderDataset();
     } catch (err) {
@@ -73,7 +73,7 @@ export default function ProviderDashboard() {
   const changeAvailability = async (nextStatus) => {
     if (profileNode?.isRejected === true) return handleRejectedClickAlert();
     try {
-      await axios.put(`http://localhost:5000/api/users/availability/${providerUser.id}`, { status: nextStatus });
+      await axios.put(`${baseURL}/api/users/availability/${providerUser.id}`, { status: nextStatus });
       fetchProviderDataset();
     } catch (err) {
       console.error('Availability switch matrix failed.', err);
@@ -83,7 +83,7 @@ export default function ProviderDashboard() {
   const updateBookingStatus = async (id, status) => {
     if (profileNode?.isRejected === true) return handleRejectedClickAlert();
     try {
-      await axios.put(`http://localhost:5000/api/bookings/${id}`, { status });
+      await axios.put(`${baseURL}/api/bookings/${id}`, { status });
       fetchProviderDataset();
     } catch (err) {
       console.error('Order state update execution crashed.', err);

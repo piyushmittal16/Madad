@@ -3,7 +3,7 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import { Calendar, Clock, Star, ShoppingBag, CheckCircle, Hourglass } from 'lucide-react';
 import Navbar from '../components/Navbar';
-
+const baseURL = import.meta.env.VITE_API_URL;
 const API = 'http://localhost:5000';
 
 export default function CustomerDashboard() {
@@ -25,7 +25,7 @@ export default function CustomerDashboard() {
   const fetchCustomerBookings = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const res = await axios.get(`${API}/api/bookings?userId=${user.id}&role=customer`);
+      const res = await axios.get(`${baseURL}/api/bookings?userId=${user.id}&role=customer`);
       const bookingsData = Array.isArray(res.data) ? res.data : [];
       setMyBookings(bookingsData);
 
@@ -47,7 +47,7 @@ export default function CustomerDashboard() {
 
   useEffect(() => {
     fetchCustomerBookings();
-    const socket = io(API);
+    const socket = io(baseURL);
     socket.on('GLOBAL_DATABASE_MUTATION', fetchCustomerBookings);
     return () => socket.disconnect();
   }, [fetchCustomerBookings]);
@@ -61,7 +61,7 @@ export default function CustomerDashboard() {
     setSubmitting(prev => ({ ...prev, [bookingId]: true }));
 
     try {
-      await axios.post(`${API}/api/users/review/add`, {
+      await axios.post(`${baseURL}/api/users/review/add`, {
         bookingId: String(bookingId),
         providerId: String(providerId),
         rating: Number(scoreValue),

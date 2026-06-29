@@ -3,6 +3,7 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import { ShieldAlert, Search, Bell, BarChart3, Wallet, ShoppingBag, X, Check, Trash2, ShieldX, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import Navbar from '../components/Navbar';
+const baseURL = import.meta.env.VITE_API_URL;
 
 const UserRow = React.memo(({ user, approveProvider, rejectProvider }) => {
   const currentStatus = user.availabilityStatus || 'available';
@@ -74,7 +75,7 @@ export default function AdminDashboard() {
   // Master function optimized for normal user interactions
   const fetchAdminData = useCallback(async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/users/admin/all?filter=${roleFilter}&search=${searchTerm}`);
+      const res = await axios.get(`${baseURL}/api/users/admin/all?filter=${roleFilter}&search=${searchTerm}`);
       setUsers(res.data.users || []);
       setAnalyticsData(res.data.analytics || { totalBookingsRequires: 0, joinedProvidersNo: 0, totalConsumerBookedValue: 0, platformEarning: 0 });
       setNotifications(res.data.notifications || []);
@@ -95,7 +96,7 @@ export default function AdminDashboard() {
       try {
         // We use state references safely inside a fresh atomic API call execution block
         // This avoids stale state closures during global mutation events
-        const res = await axios.get(`http://localhost:5000/api/users/admin/all?filter=${roleFilter}&search=${searchTerm}`);
+        const res = await axios.get(`${baseURL}/api/users/admin/all?filter=${roleFilter}&search=${searchTerm}`);
         setUsers(res.data.users || []);
         setAnalyticsData(res.data.analytics || { totalBookingsRequires: 0, joinedProvidersNo: 0, totalConsumerBookedValue: 0, platformEarning: 0 });
         setNotifications(res.data.notifications || []);
@@ -109,7 +110,7 @@ export default function AdminDashboard() {
 
   const approveProvider = useCallback(async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/users/admin/update/${id}`);
+      await axios.put(`${baseURL}/api/users/admin/update/${id}`);
       fetchAdminData();
       setShowBellBox(false);
     } catch (err) { console.error(err); }
@@ -117,7 +118,7 @@ export default function AdminDashboard() {
 
   const rejectProvider = useCallback(async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/users/admin/reject/${id}`);
+      await axios.delete(`${baseURL}/api/users/admin/reject/${id}`);
       fetchAdminData();
       setShowBellBox(false);
     } catch (err) { console.error(err); }

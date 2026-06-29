@@ -4,6 +4,7 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import { LogOut, User, LayoutDashboard, Bell, X, Check, Star, ShieldAlert } from 'lucide-react';
 import logo from "../assets/logo.png";
+const baseURL = import.meta.env.VITE_API_URL;
 
 // Helper for dynamic elapsed timestamp strings
 const formatTimeAgo = (dateString) => {
@@ -32,7 +33,7 @@ export default function Navbar() {
   const fetchActiveNotifications = useCallback(async (isGatewayLogin = false) => {
     if (!user?.id || user.role === 'admin') return; // 🔥 Guard constraint: Skip network load for admin node roles
     try {
-      const res = await axios.get(`http://localhost:5000/api/users/notifications/stream?userId=${user.id}&fetchToasts=${isGatewayLogin}`);
+      const res = await axios.get(`${baseURL}/api/users/notifications/stream?userId=${user.id}&fetchToasts=${isGatewayLogin}`);
       
       if (isGatewayLogin) {
         if (res.data && res.data.length > 0) {
@@ -62,7 +63,7 @@ export default function Navbar() {
       socket.on('GLOBAL_DATABASE_MUTATION', (data) => {
         if (data.type === 'BOOKING_STATUS_MUTATED' || data.type === 'REVIEW_STREAM_MUTATED') {
           fetchActiveNotifications(false);
-          axios.get(`http://localhost:5000/api/users/notifications/stream?userId=${user.id}`).then(res => {
+          axios.get(`${baseURL}/api/users/notifications/stream?userId=${user.id}`).then(res => {
             if (res.data && res.data.length > 0) {
               setLiveToast({ show: true, message: res.data[0].message });
               setTimeout(() => setLiveToast({ show: false, message: '' }), 5000);
@@ -94,14 +95,14 @@ export default function Navbar() {
   const handleDismissAlert = async (id, e) => {
     e.stopPropagation();
     try {
-      await axios.put(`http://localhost:5000/api/users/notifications/dismiss/${id}`);
+      await axios.put(`${baseURL}/api/users/notifications/dismiss/${id}`);
       setNotifications(prev => prev.filter(n => n._id !== id));
     } catch (err) { console.error(err); }
   };
 
   const handleBulkClear = async () => {
     try {
-      await axios.post(`http://localhost:5000/api/users/notifications/clear-all`, { userId: user.id });
+      await axios.post(`${baseURL}/api/users/notifications/clear-all`, { userId: user.id });
       setNotifications([]);
     } catch (err) { console.error(err); }
   };
