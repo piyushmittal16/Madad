@@ -3,6 +3,8 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import { Search, MapPin, AlertCircle, Sparkles, Star, Calendar, Clock, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import BlobButton from '../components/BlobButton'; // 🔥 Import the liquid core layout wrapper
+
 const baseURL = import.meta.env.VITE_API_URL;
 
 // 🚀 PERFORMANCE CONCEPT: React.memo for Provider Grid Cards
@@ -35,7 +37,6 @@ const ProviderCard = React.memo(({ provider, onSelect }) => {
       
       <div className="border-t pt-4 flex justify-between items-center mt-6 border-slate-100">
         <span className="text-lg font-black text-slate-900">₹{provider.pricePerHour}/hr</span>
-        {/* 🔥 ADDED: active:animate-click-bounce for tactile spring response */}
         <button 
           disabled={currentStatus !== 'available'} 
           onClick={() => onSelect(provider)} 
@@ -66,6 +67,9 @@ export default function Home() {
   const [bookingData, setBookingData] = useState({ date: '', phone: '', address: '' });
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  
+  // 🔥 Loader track state to block double checkout clicks loops
+  const [isBookingProcessing, setIsBookingProcessing] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user'));
   const categoriesList = ['All', 'Electrician', 'Home Repairs', 'Cleaning', 'Painting', 'Beauty & Spa'];
@@ -121,8 +125,10 @@ export default function Home() {
 
   const handleBookSubmit = async (e) => {
     e.preventDefault();
+    if (isBookingProcessing) return;
     if (!user) return showToast("Authentication Required!", "error");
 
+    setIsBookingProcessing(true);
     try {
       await axios.post(`${baseURL}/api/bookings/create`, {
         customer: user.id,
@@ -137,6 +143,8 @@ export default function Home() {
       setBookingData({ date: '', phone: '', address: '' });
     } catch (err) {
       showToast(err.response?.data?.message || 'Booking allocation collapsed.', 'error');
+    } finally {
+      setIsBookingProcessing(false);
     }
   };
 
@@ -148,28 +156,30 @@ export default function Home() {
       </div>
       <div>
         <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Select Execution Date *</label>
-        <input type="date" required value={bookingData.date} onChange={e => setBookingData({...bookingData, date: e.target.value})} className="w-full border p-2.5 text-xs rounded-xl outline-none font-bold text-slate-700 bg-slate-50 focus:bg-white" />
+        <input type="date" required disabled={isBookingProcessing} value={bookingData.date} onChange={e => setBookingData({...bookingData, date: e.target.value})} className="w-full border p-2.5 text-xs rounded-xl outline-none font-bold text-slate-700 bg-slate-50 focus:bg-white disabled:opacity-50" />
       </div>
       <div>
         <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Select Ideal Timing *</label>
         <div className="grid grid-cols-3 gap-2">
-          <select value={timeHour} onChange={e => setTimeHour(e.target.value)} className="border p-2.5 text-xs rounded-xl font-bold bg-slate-50">
+          <select disabled={isBookingProcessing} value={timeHour} onChange={e => setTimeHour(e.target.value)} className="border p-2.5 text-xs rounded-xl font-bold bg-slate-50 disabled:opacity-50">
             {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => <option key={h} value={h}>{h}</option>)}
           </select>
-          <select value={timeMin} onChange={e => setTimeMin(e.target.value)} className="border p-2.5 text-xs rounded-xl font-bold bg-slate-50"><option value="00">00</option><option value="30">30</option></select>
-          <select value={timePeriod} onChange={e => setTimePeriod(e.target.value)} className="border p-2.5 text-xs rounded-xl font-bold bg-slate-50"><option value="AM">AM</option><option value="PM">PM</option></select>
+          <select disabled={isBookingProcessing} value={timeMin} onChange={e => setTimeMin(e.target.value)} className="border p-2.5 text-xs rounded-xl font-bold bg-slate-50 disabled:opacity-50"><option value="00">00</option><option value="30">30</option></select>
+          <select disabled={isBookingProcessing} value={timePeriod} onChange={e => setTimePeriod(e.target.value)} className="border p-2.5 text-xs rounded-xl font-bold bg-slate-50 disabled:opacity-50"><option value="AM">AM</option><option value="PM">PM</option></select>
         </div>
       </div>
       <div>
         <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Contact Phone Number *</label>
-        <input type="tel" required value={bookingData.phone} placeholder="+91 XXXXX XXXXX" onChange={e => setBookingData({...bookingData, phone: e.target.value})} className="w-full border p-2.5 text-xs rounded-xl bg-slate-50 font-semibold focus:bg-white" />
+        <input type="tel" required disabled={isBookingProcessing} value={bookingData.phone} placeholder="+91 XXXXX XXXXX" onChange={e => setBookingData({...bookingData, phone: e.target.value})} className="w-full border p-2.5 text-xs rounded-xl bg-slate-50 font-semibold focus:bg-white disabled:opacity-50" />
       </div>
       <div>
         <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Complete Site Address Location *</label>
-        <textarea required value={bookingData.address} placeholder="House No, Landmark, Street specs..." onChange={e => setBookingData({...bookingData, address: e.target.value})} className="w-full border p-2.5 text-xs rounded-xl h-20 resize-none outline-none bg-slate-50 font-medium focus:bg-white" />
+        <textarea required disabled={isBookingProcessing} value={bookingData.address} placeholder="House No, Landmark, Street specs..." onChange={e => setBookingData({...bookingData, address: e.target.value})} className="w-full border p-2.5 text-xs rounded-xl h-20 resize-none outline-none bg-slate-50 font-medium focus:bg-white disabled:opacity-50" />
       </div>
-      {/* 🔥 ADDED: active:animate-click-bounce for submission elasticity */}
-      <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-95 text-white font-black py-3 rounded-xl text-xs uppercase tracking-widest shadow transition cursor-pointer active:animate-click-bounce">Confirm Dispatch</button>
+      {/* 🔥 INTEGRATED: Custom Liquid Blob Button wrapper with absolute design alignment config */}
+      <BlobButton type="submit" isLoading={isBookingProcessing} className="mt-2 btn-wave-effect">
+        Confirm Dispatch
+      </BlobButton>
     </form>
   );
 
@@ -209,7 +219,6 @@ export default function Home() {
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none select-none">
               {categoriesList.map(cat => (
-                /* 🔥 ADDED: active:animate-click-bounce for filtering tabs */
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
@@ -255,7 +264,6 @@ export default function Home() {
       {selectedProvider && (
         <div className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100000] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 border relative animate-scale-up max-h-[90vh] overflow-y-auto">
-            {/* Smooth Top Right Cross Button */}
             <button 
               onClick={() => setSelectedProvider(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition p-1 rounded-lg hover:bg-slate-100 cursor-pointer focus:outline-none active:animate-click-bounce"
